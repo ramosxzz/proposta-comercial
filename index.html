@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esse é o seu sistema solar...</title>
+    
+    <!-- Meta tags SEO -->
+    <meta name="description" content="Simulação comercial interativa de energia solar. Veja como o seu sistema solar se parecerá e quanto você economizará.">
+    <meta name="theme-color" content="#0f172a">
+    
+    <!-- Fontes Premium do Canva Original e Modernas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,700;0,800;1,400;1,700&family=Outfit:wght@300;400;700;900&family=Playpen+Sans:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilo Principal -->
+    <link rel="stylesheet" href="style.css?v=20260520-no-slide2-video">
+</head>
+<body>
+
+    <!-- ==================== PAINEL ADMINISTRATIVO / CRIADOR ==================== -->
+    <aside id="admin-sidebar" class="admin-sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <svg class="solar-logo-svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="5" stroke="currentColor" fill="var(--color-accent-sun)"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="currentColor"/>
+                </svg>
+                <h2>Solar<span>Proposals</span></h2>
+            </div>
+            <p class="subtitle">Melhorador de Layout Canva</p>
+        </div>
+
+        <div class="sidebar-content">
+            <!-- Gerenciar Histórico -->
+            <div class="section-title">Histórico de Clientes</div>
+            <div class="projects-list-container">
+                <select id="saved-projects-select" class="form-input">
+                    <option value="">-- Selecione para Carregar --</option>
+                </select>
+                <div class="project-actions-row">
+                    <button type="button" id="btn-load-project" class="btn btn-secondary btn-sm">Carregar</button>
+                    <button type="button" id="btn-delete-project" class="btn btn-danger btn-sm">Excluir</button>
+                </div>
+            </div>
+
+            <!-- Formulário de Criação -->
+            <form id="proposal-form" autocomplete="off">
+                <div class="section-title">Dados do Cliente</div>
+                
+                <div class="form-group">
+                    <label for="client_name">Nome do Cliente</label>
+                    <input type="text" id="client_name" name="client_name" class="form-input" placeholder="Ex: vilmar, Família Karnopp" required value="vilmar">
+                </div>
+
+                <div class="form-group">
+                    <label for="client_location">Cidade - UF</label>
+                    <input type="text" id="client_location" name="client_location" class="form-input" placeholder="Ex: Santa Cruz do Sul - RS" required value="Santa Cruz do Sul - RS">
+                </div>
+
+                <div class="section-title">Fatura Atual & Consumo</div>
+                
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="current_bill">Fatura Média (R$)</label>
+                        <input type="number" id="current_bill" name="current_bill" class="form-input" placeholder="350.00" required step="0.01" value="350.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="monthly_consumption">Consumo (kWh/mês)</label>
+                        <input type="number" id="monthly_consumption" name="monthly_consumption" class="form-input" placeholder="380" required value="380">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="minimum_tax">Taxa Mínima da Distribuidora (R$)</label>
+                    <input type="number" id="minimum_tax" name="minimum_tax" class="form-input" placeholder="50.00" required step="0.01" value="50.00">
+                </div>
+
+                <div class="section-title">Novo Sistema Dimensionado</div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="system_generation">Geração Estimada (kWh)</label>
+                        <input type="number" id="system_generation" name="system_generation" class="form-input" placeholder="300" required value="300">
+                    </div>
+                    <div class="form-group">
+                        <label for="system_size">Potência (kWp)</label>
+                        <input type="number" id="system_size" name="system_size" class="form-input" placeholder="3.5" required step="0.01" value="3.50">
+                    </div>
+                </div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="panel_qty">Nº de Painéis</label>
+                        <input type="number" id="panel_qty" name="panel_qty" class="form-input" placeholder="8" required value="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="panel_power">Potência Painel (W)</label>
+                        <input type="number" id="panel_power" name="panel_power" class="form-input" placeholder="550" required value="550">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="panel_specs">Especificações dos Painéis</label>
+                    <input type="text" id="panel_specs" name="panel_specs" class="form-input" placeholder="Ex: Risen Monocristalino 550W" value="Dah Solar 550W Monocristalino">
+                </div>
+
+                <div class="form-group">
+                    <label for="inverter_specs">Especificações do Inversor</label>
+                    <input type="text" id="inverter_specs" name="inverter_specs" class="form-input" placeholder="Ex: Microinversor Deye 2000W" value="Microinversor APsystems QT2D">
+                </div>
+
+                <div class="section-title">Investimento & Retorno</div>
+
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label for="investment_val">Investimento (R$)</label>
+                        <input type="number" id="investment_val" name="investment_val" class="form-input" placeholder="12500.00" required step="0.01" value="12500.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="payback_years">Payback (Anos)</label>
+                        <input type="number" id="payback_years" name="payback_years" class="form-input" placeholder="3.5" required step="0.1" value="3.5">
+                    </div>
+                </div>
+
+                <div class="section-title">VÍDEO OU IMAGEM DO TELHADO</div>
+                
+                <!-- Suporte a Vídeo -->
+                <div class="form-group">
+                    <label for="project_video_url">URL do Vídeo (.mp4)</label>
+                    <input type="url" id="project_video_url" name="project_video_url" class="form-input" placeholder="https://site.com/video.mp4">
+                    <small class="input-tip">Ideal para links de nuvem (Drive, Dropbox, etc.)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="project_video_file" class="file-upload-label">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="23 7 16 12 23 17 23 7"/>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                        </svg>
+                        Upload de Vídeo (.mp4 local)
+                    </label>
+                    <input type="file" id="project_video_file" name="project_video_file" class="file-upload-input" accept="video/mp4,video/*">
+                    <span id="video-upload-status" class="file-status">Nenhum vídeo selecionado</span>
+                </div>
+
+                <!-- Fallback de Imagem -->
+                <div class="form-group">
+                    <label for="project_image_url">URL da Imagem (Alternativo)</label>
+                    <input type="url" id="project_image_url" name="project_image_url" class="form-input" placeholder="https://site.com/imagem.png">
+                </div>
+                
+                <div class="form-group">
+                    <label for="project_image_file" class="file-upload-label" style="border-color: var(--color-text-muted); color: var(--color-text-secondary); background: transparent;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        Upload de Imagem (Alternativo)
+                    </label>
+                    <input type="file" id="project_image_file" name="project_image_file" class="file-upload-input" accept="image/*">
+                    <span id="file-upload-status" class="file-status">Nenhuma imagem selecionada</span>
+                </div>
+
+                <div class="section-title">Contato do Projetista</div>
+
+                <div class="form-group">
+                    <label for="consultant_name">Nome do Projetista/Empresa</label>
+                    <input type="text" id="consultant_name" name="consultant_name" class="form-input" placeholder="Ex: Vilmar Solar" required value="Vilmar Solar">
+                </div>
+
+                <div class="form-group">
+                    <label for="consultant_phone">WhatsApp (Apenas Números)</label>
+                    <input type="text" id="consultant_phone" name="consultant_phone" class="form-input" placeholder="Ex: 51999999999" required value="51999999999">
+                </div>
+
+                <div class="admin-actions">
+                    <button type="submit" id="btn-save" class="btn btn-primary btn-block">Salvar no Histórico</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="section-title">Compartilhamento</div>
+            <div class="distribution-row">
+                <button type="button" id="btn-copy-link" class="btn btn-action" title="Copiar link com dados embutidos">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    Copiar Link
+                </button>
+                <button type="button" id="btn-export-html" class="btn btn-action" title="Baixar HTML autônomo premium">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Baixar HTML
+                </button>
+            </div>
+            <div class="preview-toggle-container">
+                <button type="button" id="btn-preview-toggle" class="btn btn-secondary btn-block">
+                    Visualização Limpa (Cliente)
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Botão flutuante para mostrar painel no modo preview -->
+    <button type="button" id="btn-admin-floating-show" class="admin-floating-show hidden" title="Editar Proposta">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+    </button>
+
+
+    <!-- ==================== RENDERIZADOR DA PROPOSTA (ESTRUTURA CANVA MELHORADA) ==================== -->
+    <main id="client-proposal-container" class="client-proposal-container">
+        
+        <!-- SLIDE 1: APRESENTAÇÃO DO SISTEMA (HERO) -->
+        <section id="slide-hero" class="presentation-slide">
+            <!-- Background Dinâmico (Vídeo ou Imagem) -->
+            <div id="slide1-media-bg" class="slide-media-bg">
+                <div class="media-overlay-gradient"></div>
+                <!-- O reprodutor de vídeo ou imagem padrão será injetado aqui via JS -->
+                <div class="media-placeholder-graphic">
+                    <div class="solar-panel-grid-art"></div>
+                </div>
+            </div>
+
+            <div class="slide-content-container">
+                <div class="canva-glass-card slide1-card scale-in">
+                    <h1 class="canva-title-primary">
+                        Esse é o seu sistema solar... <span id="render-client-name" class="client-highlight-name">vilmar</span>
+                    </h1>
+                    
+                    <p class="canva-subtitle-desc">
+                        Sistema dimensionado para gerar aproximadamente <strong id="render-system-generation">300</strong> kWh/mês, reduzindo sua conta em cerca de R$ <strong id="render-monthly-saving">300</strong>/mês.
+                    </p>
+                    
+                    <div class="canva-actions-row">
+                        <a href="#slide-roi" class="btn-canva-action">
+                            Ver como o Investimento se paga
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" class="arrow-down-icon">
+                                <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 2: VALOR DA FATURA E CONSUMO (IMERSIVO NO TELHADO) -->
+        <section id="slide-costs" class="presentation-slide">
+            <!-- Background Dinâmico do Telhado -->
+            <div id="slide2-media-bg" class="slide-media-bg">
+                <div class="media-overlay-gradient"></div>
+                <div class="media-placeholder-graphic">
+                    <div class="solar-panel-grid-art blue-tint"></div>
+                </div>
+            </div>
+
+            <div class="slide-content-container">
+                <div class="costs-layout-grid">
+                    
+                    <!-- Card 1: Fatura Sem Energia Solar -->
+                    <div class="canva-glass-card cost-card fade-in-up">
+                        <span class="cost-card-tag text-red">Atenção</span>
+                        <h2 class="cost-card-title">
+                            Esse é o valor médio da sua fatura sem energia solar
+                        </h2>
+                        <div class="cost-card-value text-red">
+                            R$ <span id="render-current-bill">350,00</span>
+                        </div>
+                        <p class="cost-card-desc">
+                            Custo pago diretamente à distribuidora local sem nenhum tipo de retorno ou patrimônio gerado.
+                        </p>
+                    </div>
+
+                    <!-- Card 2: Consumo Médio -->
+                    <div class="canva-glass-card cost-card fade-in-up delay-100">
+                        <span class="cost-card-tag text-sun">Consumo Ativo</span>
+                        <h2 class="cost-card-title">
+                            Esse é o seu consumo médio mensal
+                        </h2>
+                        <div class="cost-card-value text-sun">
+                            <span id="render-monthly-consumption">380</span> <span class="unit">kWh</span>
+                        </div>
+                        <p class="cost-card-desc">
+                            Média de energia consumida pela sua residência para manter o conforto e equipamentos ativos.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 3: NOVO GRÁFICO ROI E FICHA TÉCNICA (MELHORIA ADICIONADA) -->
+        <section id="slide-roi" class="presentation-slide">
+            <div class="slide-content-container">
+                <div class="roi-presentation-grid">
+                    
+                    <!-- Ficha Técnica -->
+                    <div class="canva-glass-card roi-info-card fade-in-up">
+                        <h2 class="roi-card-title">Seu Projeto de Engenharia</h2>
+                        <ul class="canva-spec-list">
+                            <li>
+                                <span>Potência do Sistema:</span>
+                                <strong><span id="render-system-size">3.50</span> kWp</strong>
+                            </li>
+                            <li>
+                                <span>Painéis Solares:</span>
+                                <strong><span id="render-panel-qty">8</span>x <span id="render-panel-power">550</span>W</strong>
+                            </li>
+                            <li>
+                                <span>Tecnologia Módulos:</span>
+                                <span class="spec-detail" id="render-panel-specs">Dah Solar Monocristalino</span>
+                            </li>
+                            <li>
+                                <span>Inversor/Conversor:</span>
+                                <span class="spec-detail" id="render-inverter-specs">Microinversor APsystems QT2D</span>
+                            </li>
+                            <li>
+                                <span>Nova Conta Estimada:</span>
+                                <strong class="text-green">R$ <span id="render-minimum-tax">50,00</span></strong>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Gráfico e Payback -->
+                    <div class="canva-glass-card roi-chart-card fade-in-up delay-100">
+                        <h2 class="roi-card-title">Como o Investimento se Paga (ROI)</h2>
+                        <p class="roi-chart-subtitle">Economia Líquida Acumulada com Energia Solar:</p>
+                        
+                        <div class="canva-chart-container">
+                            <div class="canva-chart-bar-item">
+                                <div class="canva-bar-fill-wrapper">
+                                    <div id="render-roi-bar-1" class="canva-bar-fill sun-bar" style="height: 15%;">
+                                        <span class="bar-money">R$ 18k</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">5 Anos</span>
+                            </div>
+                            <div class="canva-chart-bar-item">
+                                <div class="canva-bar-fill-wrapper">
+                                    <div id="render-roi-bar-2" class="canva-bar-fill sun-bar" style="height: 35%;">
+                                        <span class="bar-money">R$ 36k</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">10 Anos</span>
+                            </div>
+                            <div class="canva-chart-bar-item">
+                                <div class="canva-bar-fill-wrapper">
+                                    <div id="render-roi-bar-3" class="canva-bar-fill green-bar" style="height: 60%;">
+                                        <span class="bar-money">R$ 54k</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">15 Anos</span>
+                            </div>
+                            <div class="canva-chart-bar-item">
+                                <div class="canva-bar-fill-wrapper">
+                                    <div id="render-roi-bar-4" class="canva-bar-fill green-bar" style="height: 100%;">
+                                        <span class="bar-money">R$ 90k</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">25 Anos</span>
+                            </div>
+                        </div>
+
+                        <div class="payback-badge-row">
+                            <div class="payback-stat-box">
+                                <span class="p-label">Investimento Total</span>
+                                <span class="p-value">R$ <span id="render-investment-display">12.500,00</span></span>
+                            </div>
+                            <div class="payback-stat-box highlight-box">
+                                <span class="p-label">Retorno (Payback)</span>
+                                <span class="p-value"><span id="render-payback-stat">3.5</span> Anos</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SLIDE 4: SIMULAÇÃO E CALL TO ACTION (QUERO ECONOMIZAR) -->
+        <section id="slide-cta" class="presentation-slide">
+            <!-- Background de fundo suave -->
+            <div class="slide-media-bg">
+                <div class="media-overlay-gradient"></div>
+                <div class="sun-glow-bg-light"></div>
+            </div>
+
+            <div class="slide-content-container">
+                <div class="canva-glass-card cta-card text-center scale-in">
+                    <h1 class="cta-title">
+                        Simulação da fatura de energia com sistema solar
+                    </h1>
+                    
+                    <p class="cta-desc">
+                        Garanta sua independência das tarifas de energia elétrica. Reduza seus custos mensais imediatamente.
+                    </p>
+
+                    <div class="cta-button-wrapper">
+                        <a href="#" id="whatsapp-cta-button" target="_blank" class="btn-canva-cta-glowing">
+                            QUERO ECONOMIZAR
+                            <svg class="whatsapp-icon" viewBox="0 0 448 512" width="20" height="20" fill="currentColor">
+                                <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L3 472l110.3-28.9c32.6 17.8 69 27.2 106.4 27.2 127.9 0 230.6-102.7 230.6-230.6 0-62-24.2-120.2-66.4-162.6zm-157 325.3c-33.1 0-65.7-8.9-94-25.7l-6.7-4-65.6 17.2 17.5-63.9-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <div class="creator-sign-off" style="margin-top: 30px;">
+                        Proposta apresentada por <strong id="render-consultant-name">Vilmar Solar</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Script de lógica principal -->
+    <script src="app.js?v=20260520-no-slide2-video"></script>
+</body>
+</html>
