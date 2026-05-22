@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,700;0,800;1,400;1,700&family=Outfit:wght@300;400;700;900&family=Playpen+Sans:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Estilo Principal -->
-    <link rel="stylesheet" href="style.css?v=20260520-no-slide2-video">
+    <link rel="stylesheet" href="style.css?v=20260522-april-bills-final-title">
 </head>
 <body>
 
@@ -143,6 +143,7 @@
                     </label>
                     <input type="file" id="project_video_file" name="project_video_file" class="file-upload-input" accept="video/mp4,video/*">
                     <span id="video-upload-status" class="file-status">Nenhum vídeo selecionado</span>
+                    <button type="button" id="btn-clear-video" class="btn btn-danger btn-sm media-clear-btn">Remover video anexado</button>
                 </div>
 
                 <!-- Fallback de Imagem -->
@@ -162,6 +163,23 @@
                     </label>
                     <input type="file" id="project_image_file" name="project_image_file" class="file-upload-input" accept="image/*">
                     <span id="file-upload-status" class="file-status">Nenhuma imagem selecionada</span>
+                </div>
+
+                <div class="section-title">Fatura do Cliente</div>
+
+                <div class="form-group">
+                    <label for="bill_image_file" class="file-upload-label">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="8" y1="13" x2="16" y2="13"/>
+                            <line x1="8" y1="17" x2="14" y2="17"/>
+                        </svg>
+                        Upload das Fotos da Fatura
+                    </label>
+                    <input type="file" id="bill_image_file" name="bill_image_file" class="file-upload-input" accept="image/*" multiple>
+                    <span id="bill-upload-status" class="file-status">Nenhuma fatura selecionada</span>
+                    <button type="button" id="btn-clear-bills" class="btn btn-danger btn-sm media-clear-btn">Remover faturas anexadas</button>
                 </div>
 
                 <div class="section-title">Contato do Projetista</div>
@@ -246,6 +264,19 @@
             </div>
         </section>
 
+        <section id="slide-bill" class="bill-proof-section">
+            <div class="hero-blur-transition" aria-hidden="true"></div>
+            <div class="bill-proof-inner">
+                <div class="bill-proof-copy">
+                    <span class="cost-card-tag text-sun">Faturas de abril</span>
+                    <h2>Como vão ficar as suas faturas no mês de abril</h2>
+                </div>
+                <div class="bill-gallery" id="render-bill-gallery">
+                    <div id="bill-image-placeholder" class="bill-placeholder">Envie uma ou mais fotos da fatura no painel para elas aparecerem aqui.</div>
+                </div>
+            </div>
+        </section>
+
         <!-- SLIDE 2: VALOR DA FATURA E CONSUMO (IMERSIVO NO TELHADO) -->
         <section id="slide-costs" class="presentation-slide">
             <!-- Background Dinâmico do Telhado -->
@@ -317,8 +348,8 @@
                                 <span class="spec-detail" id="render-inverter-specs">Microinversor APsystems QT2D</span>
                             </li>
                             <li>
-                                <span>Nova Conta Estimada:</span>
-                                <strong class="text-green">R$ <span id="render-minimum-tax">50,00</span></strong>
+                                <span>Geração Estimada:</span>
+                                <strong class="text-green"><span id="render-generation-spec">300</span> kWh/mês</strong>
                             </li>
                         </ul>
                     </div>
@@ -326,40 +357,48 @@
                     <!-- Gráfico e Payback -->
                     <div class="canva-glass-card roi-chart-card fade-in-up delay-100">
                         <h2 class="roi-card-title">Como o Investimento se Paga (ROI)</h2>
-                        <p class="roi-chart-subtitle">Economia Líquida Acumulada com Energia Solar:</p>
+                        <p class="roi-chart-subtitle">Lucro líquido acumulado após descontar o investimento:</p>
                         
                         <div class="canva-chart-container">
                             <div class="canva-chart-bar-item">
                                 <div class="canva-bar-fill-wrapper">
-                                    <div id="render-roi-bar-1" class="canva-bar-fill sun-bar" style="height: 15%;">
-                                        <span class="bar-money">R$ 18k</span>
+                                    <div id="render-roi-bar-1" class="canva-bar-fill red-bar" style="height: 35%;">
+                                        <span class="bar-money">-R$ 167k</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">1 Ano</span>
+                            </div>
+                            <div class="canva-chart-bar-item">
+                                <div class="canva-bar-fill-wrapper">
+                                    <div id="render-roi-bar-2" class="canva-bar-fill green-bar" style="height: 10%;">
+                                        <span class="bar-money">R$ 2k</span>
+                                    </div>
+                                </div>
+                                <span class="bar-label">4 Anos</span>
+                            </div>
+                            <div class="canva-chart-bar-item">
+                                <div class="canva-bar-fill-wrapper">
+                                    <div id="render-roi-bar-3" class="canva-bar-fill green-bar" style="height: 16%;">
+                                        <span class="bar-money">R$ 58k</span>
                                     </div>
                                 </div>
                                 <span class="bar-label">5 Anos</span>
                             </div>
                             <div class="canva-chart-bar-item">
                                 <div class="canva-bar-fill-wrapper">
-                                    <div id="render-roi-bar-2" class="canva-bar-fill sun-bar" style="height: 35%;">
-                                        <span class="bar-money">R$ 36k</span>
+                                    <div id="render-roi-bar-4" class="canva-bar-fill green-bar" style="height: 55%;">
+                                        <span class="bar-money">R$ 340k</span>
                                     </div>
                                 </div>
                                 <span class="bar-label">10 Anos</span>
                             </div>
                             <div class="canva-chart-bar-item">
                                 <div class="canva-bar-fill-wrapper">
-                                    <div id="render-roi-bar-3" class="canva-bar-fill green-bar" style="height: 60%;">
-                                        <span class="bar-money">R$ 54k</span>
+                                    <div id="render-roi-bar-5" class="canva-bar-fill green-bar" style="height: 100%;">
+                                        <span class="bar-money">R$ 622k</span>
                                     </div>
                                 </div>
                                 <span class="bar-label">15 Anos</span>
-                            </div>
-                            <div class="canva-chart-bar-item">
-                                <div class="canva-bar-fill-wrapper">
-                                    <div id="render-roi-bar-4" class="canva-bar-fill green-bar" style="height: 100%;">
-                                        <span class="bar-money">R$ 90k</span>
-                                    </div>
-                                </div>
-                                <span class="bar-label">25 Anos</span>
                             </div>
                         </div>
 
@@ -416,6 +455,6 @@
     </main>
 
     <!-- Script de lógica principal -->
-    <script src="app.js?v=20260520-no-slide2-video"></script>
+    <script src="app.js?v=20260522-export-visible-fix"></script>
 </body>
 </html>

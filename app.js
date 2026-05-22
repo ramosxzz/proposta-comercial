@@ -22,6 +22,8 @@ let proposalData = {
     projectImageBase64: '',
     projectVideoUrl: '',
     projectVideoBase64: '',
+    billImageBase64: '',
+    billImagesBase64: [],
     consultantName: 'Vilmar Solar',
     consultantPhone: '51999999999'
 };
@@ -32,6 +34,9 @@ let savedProjects = {};
 // Arquivos originais da sessão (necessários para exportar vídeo no HTML baixado)
 let sessionVideoFile = null;
 let sessionImageFile = null;
+let sessionBillImageFile = null;
+let appMode = 'edit';
+let previewDirty = true;
 
 const EXPORT_MEDIA_SLOT_1 = '<!--SOLARPRO_MEDIA_SLOT_1-->';
 const EXPORT_MEDIA_SLOT_2 = '<!--SOLARPRO_MEDIA_SLOT_2-->';
@@ -62,10 +67,15 @@ const DOM = {
     inputVideoUrl: document.getElementById('project_video_url'),
     inputVideoFile: document.getElementById('project_video_file'),
     inputVideoStatus: document.getElementById('video-upload-status'),
+    btnClearVideo: document.getElementById('btn-clear-video'),
     
     inputImageUrl: document.getElementById('project_image_url'),
     inputImageFile: document.getElementById('project_image_file'),
     inputImageStatus: document.getElementById('file-upload-status'),
+
+    inputBillImageFile: document.getElementById('bill_image_file'),
+    inputBillImageStatus: document.getElementById('bill-upload-status'),
+    btnClearBills: document.getElementById('btn-clear-bills'),
     
     inputConsultantName: document.getElementById('consultant_name'),
     inputConsultantPhone: document.getElementById('consultant_phone'),
@@ -77,12 +87,15 @@ const DOM = {
     renderCurrentBill: document.getElementById('render-current-bill'),
     renderMonthlyConsumption: document.getElementById('render-monthly-consumption'),
     renderMinimumTax: document.getElementById('render-minimum-tax'),
+    renderGenerationSpec: document.getElementById('render-generation-spec'),
     renderSystemGeneration: document.getElementById('render-system-generation'),
     renderMonthlySaving: document.getElementById('render-monthly-saving'),
     
     // Containers de Mídia (Slides)
     slide1MediaBg: document.getElementById('slide1-media-bg'),
     slide2MediaBg: document.getElementById('slide2-media-bg'),
+    renderBillGallery: document.getElementById('render-bill-gallery'),
+    billImagePlaceholder: document.getElementById('bill-image-placeholder'),
     
     renderSystemSize: document.getElementById('render-system-size'),
     renderPanelQty: document.getElementById('render-panel-qty'),
@@ -97,6 +110,7 @@ const DOM = {
     renderRoiBar2: document.getElementById('render-roi-bar-2'),
     renderRoiBar3: document.getElementById('render-roi-bar-3'),
     renderRoiBar4: document.getElementById('render-roi-bar-4'),
+    renderRoiBar5: document.getElementById('render-roi-bar-5'),
     
     renderConsultantName: document.getElementById('render-consultant-name'),
     whatsappCtaButton: document.getElementById('whatsapp-cta-button'),
@@ -126,10 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const decoded = decodeProposalData(encodedData);
             proposalData = decoded;
-            // Oculta sidebar administrativo
-            DOM.sidebar.classList.add('collapsed');
-            DOM.container.style.marginLeft = '0';
-            DOM.floatingShowBtn.classList.remove('hidden');
+            appMode = 'preview';
         } catch (e) {
             console.error('Falha ao decodificar dados da URL:', e);
         }
@@ -138,8 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Preencher formulário administrativo com os dados ativos
     populateAdminForm();
     
-    // 4. Renderizar a proposta nos slides
-    renderProposal();
+    // 4. Começar leve: edição não carrega vídeo/proposta até pedir visualização
+    applyAppMode();
+    renderProposal({ includeMedia: appMode === 'preview' });
     
     // 5. Configurar ouvintes de eventos
     setupEventListeners();
@@ -155,14 +167,19 @@ function setupEventListeners() {
     // Ouvinte de mudança em tempo real para os inputs
     DOM.form.addEventListener('input', (e) => {
         updateActiveStateFromForm();
-        renderProposal();
+        markPreviewDirty();
     });
     
     // Upload de Vídeo Local
     DOM.inputVideoFile.addEventListener('change', handleVideoUpload);
+    DOM.btnClearVideo.addEventListener('click', clearAttachedVideo);
     
     // Upload de Imagem Local
     DOM.inputImageFile.addEventListener('change', handleImageUpload);
+
+    // Upload da Foto da Fatura
+    DOM.inputBillImageFile.addEventListener('change', handleBillImageUpload);
+    DOM.btnClearBills.addEventListener('click', clearAttachedBills);
     
     // Salvar Projeto
     DOM.form.addEventListener('submit', (e) => {
@@ -242,6 +259,8 @@ function populateAdminForm() {
     
     DOM.inputConsultantName.value = proposalData.consultantName;
     DOM.inputConsultantPhone.value = proposalData.consultantPhone;
+    const billCount = getBillImages().length;
+    DOM.inputBillImageStatus.textContent = billCount ? `${billCount} fatura(s) salva(s) em memoria!` : "Nenhuma fatura selecionada";
     
     if (proposalData.projectVideoBase64) {
         DOM.inputVideoStatus.textContent = "Vídeo salvo em memória!";
@@ -274,7 +293,7 @@ async function handleVideoUpload(e) {
         sessionVideoFile = null;
         DOM.inputVideoFile.value = "";
         DOM.inputVideoStatus.textContent = "Formato incompatível. Converta o vídeo para MP4 H.264 antes de exportar.";
-        renderProposal();
+        markPreviewDirty();
         return;
     }
 
@@ -284,12 +303,12 @@ async function handleVideoUpload(e) {
             DOM.inputVideoStatus.textContent = "Vídeo pronto para exportar no HTML.";
             DOM.inputVideoUrl.value = "";
             proposalData.projectVideoUrl = "";
-            renderProposal();
+            markPreviewDirty();
         })
         .catch(() => {
             proposalData.projectVideoBase64 = "";
             DOM.inputVideoStatus.textContent = "Prévia ok — exportação usará o arquivo original.";
-            renderProposal();
+            markPreviewDirty();
         });
 }
 
@@ -306,21 +325,72 @@ function handleImageUpload(e) {
             DOM.inputImageStatus.textContent = "Imagem carregada com sucesso!";
             DOM.inputImageUrl.value = "";
             proposalData.projectImageUrl = "";
-            renderProposal();
+            markPreviewDirty();
         })
         .catch(() => {
             DOM.inputImageStatus.textContent = "Erro ao carregar.";
         });
 }
 
+function handleBillImageUpload(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    sessionBillImageFile = files;
+    DOM.inputBillImageStatus.textContent = `Processando ${files.length} fatura(s)...`;
+
+    Promise.all(files.map((file) => fileToDataUrl(file, 'image/jpeg')))
+        .then((dataUrls) => {
+            const currentBills = getBillImages();
+            proposalData.billImagesBase64 = [...currentBills, ...dataUrls];
+            proposalData.billImageBase64 = proposalData.billImagesBase64[0] || '';
+            DOM.inputBillImageStatus.textContent = `${proposalData.billImagesBase64.length} fatura(s) carregada(s) com sucesso!`;
+            DOM.inputBillImageFile.value = '';
+            markPreviewDirty();
+        })
+        .catch(() => {
+            DOM.inputBillImageStatus.textContent = "Erro ao carregar fatura(s).";
+        });
+}
+
+function clearAttachedVideo() {
+    if (proposalData.tempVideoObjectUrl) {
+        URL.revokeObjectURL(proposalData.tempVideoObjectUrl);
+    }
+    sessionVideoFile = null;
+    proposalData.tempVideoObjectUrl = '';
+    proposalData.projectVideoBase64 = '';
+    proposalData.projectVideoUrl = '';
+    DOM.inputVideoFile.value = '';
+    DOM.inputVideoUrl.value = '';
+    DOM.inputVideoStatus.textContent = 'Nenhum video anexado';
+    markPreviewDirty();
+    if (appMode === 'preview') {
+        renderProposal({ includeMedia: true });
+    }
+}
+
+function clearAttachedBills() {
+    sessionBillImageFile = null;
+    proposalData.billImageBase64 = '';
+    proposalData.billImagesBase64 = [];
+    DOM.inputBillImageFile.value = '';
+    DOM.inputBillImageStatus.textContent = 'Nenhuma fatura selecionada';
+    markPreviewDirty();
+    if (appMode === 'preview') {
+        renderBillImage({ includeMedia: true });
+    }
+}
+
 /* ==========================================================================
    RENDERIZAÇÃO DOS SLIDES E CÁLCULOS
    ========================================================================== */
-function renderProposal() {
+function renderProposal({ includeMedia = false } = {}) {
     // 1. Hero / Dados Básicos do Slide 1
     DOM.renderClientName.textContent = proposalData.clientName;
     
-    const monthlySaving = Math.max(0, proposalData.currentBill - proposalData.minimumTax);
+    const estimatedBill = getEstimatedBillValue();
+    const monthlySaving = Math.max(0, proposalData.currentBill - estimatedBill);
     
     DOM.renderSystemGeneration.textContent = proposalData.systemGeneration;
     DOM.renderMonthlySaving.textContent = formatCurrency(monthlySaving);
@@ -335,40 +405,81 @@ function renderProposal() {
     DOM.renderPanelPower.textContent = proposalData.panelPower;
     DOM.renderPanelSpecs.textContent = proposalData.panelSpecs;
     DOM.renderInverterSpecs.textContent = proposalData.inverterSpecs;
-    DOM.renderMinimumTax.textContent = formatCurrency(proposalData.minimumTax);
+    DOM.renderGenerationSpec.textContent = proposalData.systemGeneration;
     
     // 4. Investimento e Gráfico ROI
     DOM.renderInvestmentDisplay.textContent = formatCurrency(proposalData.investmentVal);
     DOM.renderPaybackStat.textContent = proposalData.paybackYears.toFixed(1);
     
-    const annualSaving = monthlySaving * 12;
-    const economy5Years = annualSaving * 5;
-    const economy10Years = annualSaving * 10;
-    const economy15Years = annualSaving * 15;
-    const economy25Years = annualSaving * 25;
-    
-    const maxVal = economy25Years || 1;
-    
-    DOM.renderRoiBar1.style.height = `${Math.max(10, (economy5Years / maxVal) * 100)}%`;
-    DOM.renderRoiBar1.querySelector('.bar-money').textContent = formatCompactCurrency(economy5Years);
-    
-    DOM.renderRoiBar2.style.height = `${Math.max(20, (economy10Years / maxVal) * 100)}%`;
-    DOM.renderRoiBar2.querySelector('.bar-money').textContent = formatCompactCurrency(economy10Years);
-    
-    DOM.renderRoiBar3.style.height = `${Math.max(35, (economy15Years / maxVal) * 100)}%`;
-    DOM.renderRoiBar3.querySelector('.bar-money').textContent = formatCompactCurrency(economy15Years);
-    
-    DOM.renderRoiBar4.style.height = `100%`;
-    DOM.renderRoiBar4.querySelector('.bar-money').textContent = formatCompactCurrency(economy25Years);
+    const roiPoints = [
+        { el: DOM.renderRoiBar1, value: -167000, label: '-R$ 167 mil' },
+        { el: DOM.renderRoiBar2, value: 2049, label: 'R$ 2.049' },
+        { el: DOM.renderRoiBar3, value: 58000, label: 'R$ 58 mil' },
+        { el: DOM.renderRoiBar4, value: 340000, label: 'R$ 340 mil' },
+        { el: DOM.renderRoiBar5, value: 622000, label: 'R$ 622 mil' }
+    ];
+
+    const maxAbsRoi = Math.max(...roiPoints.map((point) => Math.abs(point.value)), 1);
+    roiPoints.forEach((point) => renderRoiBar(point.el, point.value, maxAbsRoi, point.label));
     
     // 5. Injetar Mídia de Fundo (Vídeo ou Imagem) nos Slides 1 e 2
-    renderSlideMedia(DOM.slide1MediaBg, true);  // Slide 1 - Fundo do telhado do cliente
+    if (includeMedia) {
+        renderSlideMedia(DOM.slide1MediaBg, true);  // Slide 1 - Fundo do telhado do cliente
     renderSlideMedia(DOM.slide2MediaBg, false); // Slide 2 - Telhado ou Ilustração
+    }
     
+    renderBillImage({ includeMedia });
+
     // 6. WhatsApp CTA
     DOM.renderConsultantName.textContent = proposalData.consultantName;
     const message = `Olá! Vi a proposta comercial solar do ${proposalData.clientName} e gostaria de dar início ao projeto!`;
     DOM.whatsappCtaButton.href = `https://api.whatsapp.com/send?phone=${proposalData.consultantPhone}&text=${encodeURIComponent(message)}`;
+}
+
+function renderBillImage({ includeMedia = false } = {}) {
+    const billImages = includeMedia ? getBillImages() : [];
+    DOM.renderBillGallery.innerHTML = '';
+
+    if (!billImages.length) {
+        DOM.renderBillGallery.appendChild(DOM.billImagePlaceholder);
+        DOM.billImagePlaceholder.hidden = false;
+        return;
+    }
+
+    billImages.forEach((src, index) => {
+        const figure = document.createElement('figure');
+        figure.className = 'bill-image-frame';
+
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = `Foto da fatura de energia ${index + 1}`;
+
+        figure.appendChild(img);
+        DOM.renderBillGallery.appendChild(figure);
+    });
+}
+
+function getBillImages() {
+    if (Array.isArray(proposalData.billImagesBase64) && proposalData.billImagesBase64.length) {
+        return proposalData.billImagesBase64.filter(Boolean);
+    }
+    return proposalData.billImageBase64 ? [proposalData.billImageBase64] : [];
+}
+
+function renderRoiBar(barEl, value, maxAbsRoi, label) {
+    const height = Math.max(10, (Math.abs(value) / maxAbsRoi) * 100);
+    barEl.style.height = `${height}%`;
+    barEl.classList.toggle('red-bar', value < 0);
+    barEl.classList.toggle('green-bar', value >= 0);
+    barEl.classList.remove('sun-bar');
+    barEl.querySelector('.bar-money').textContent = label || formatCompactCurrency(value);
+}
+
+function getEstimatedBillValue() {
+    if (Number.isFinite(proposalData.minimumTax) && proposalData.minimumTax > 0) {
+        return proposalData.minimumTax;
+    }
+    return 50;
 }
 
 /**
@@ -504,6 +615,7 @@ async function loadSelectedProject() {
     proposalData.tempVideoObjectUrl = "";
     sessionVideoFile = null;
     sessionImageFile = null;
+    sessionBillImageFile = null;
 
     // Tenta recuperar vídeo do IndexedDB (persiste entre sessões, sem limite de tamanho)
     if (!proposalData.projectVideoBase64) {
@@ -515,7 +627,11 @@ async function loadSelectedProject() {
 
     populateAdminForm();
 
-    renderProposal();
+    markPreviewDirty();
+    if (appMode === 'preview') {
+        renderProposal({ includeMedia: true });
+        previewDirty = false;
+    }
 }
 
 function deleteSelectedProject() {
@@ -592,6 +708,8 @@ function decodeProposalData(encoded) {
         projectImageUrl: compact.iu || '',
         projectVideoBase64: '',
         projectImageBase64: '',
+        billImageBase64: '',
+        billImagesBase64: [],
         consultantName: compact.cn,
         consultantPhone: compact.cp
     };
@@ -616,17 +734,54 @@ function copyShareableLink() {
    MODO VISUALIZAÇÃO LIMPA (PREVIEW)
    ========================================================================== */
 function togglePreviewMode() {
-    const isCollapsed = DOM.sidebar.classList.toggle('collapsed');
-    
-    if (isCollapsed) {
-        DOM.container.style.marginLeft = '0';
-        DOM.floatingShowBtn.classList.remove('hidden');
+    if (appMode === 'edit') {
+        showProposalPreview();
     } else {
-        if (window.innerWidth > 1024) {
-            DOM.container.style.marginLeft = 'var(--sidebar-width)';
-        }
-        DOM.floatingShowBtn.classList.add('hidden');
+        showEditMode();
     }
+}
+
+function markPreviewDirty() {
+    previewDirty = true;
+    if (DOM.previewToggleBtn) {
+        DOM.previewToggleBtn.textContent = 'Visualizar Proposta';
+    }
+}
+
+function applyAppMode() {
+    const isEdit = appMode === 'edit';
+    document.body.classList.toggle('editing-mode', isEdit);
+    document.body.classList.toggle('preview-mode', !isEdit);
+    DOM.sidebar.classList.toggle('collapsed', !isEdit);
+    DOM.floatingShowBtn.classList.toggle('hidden', isEdit);
+    DOM.container.hidden = isEdit;
+    DOM.container.style.marginLeft = isEdit ? '' : '0';
+    if (DOM.previewToggleBtn) {
+        DOM.previewToggleBtn.textContent = isEdit ? 'Visualizar Proposta' : 'Voltar aos Dados';
+    }
+}
+
+function showEditMode() {
+    appMode = 'edit';
+    pausePreviewVideos();
+    applyAppMode();
+}
+
+function showProposalPreview() {
+    updateActiveStateFromForm();
+    appMode = 'preview';
+    applyAppMode();
+    renderProposal({ includeMedia: true });
+    previewDirty = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function pausePreviewVideos() {
+    DOM.container.querySelectorAll('video').forEach((video) => {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+    });
 }
 
 /* ==========================================================================
@@ -958,8 +1113,15 @@ async function exportStandaloneHTML() {
         return;
     }
 
+    updateActiveStateFromForm();
+    renderProposal({ includeMedia: true });
+
     const cssStyles = await getExportStyles();
     const mainClone = DOM.container.cloneNode(true);
+    mainClone.hidden = false;
+    mainClone.removeAttribute('hidden');
+    mainClone.classList.remove('hidden');
+    mainClone.style.marginLeft = '0';
 
     const slot1 = mainClone.querySelector('#slide1-media-bg');
     const slot2 = mainClone.querySelector('#slide2-media-bg');
@@ -1086,10 +1248,18 @@ function formatCurrency(value) {
 }
 
 function formatCompactCurrency(value) {
-    if (value >= 1000) {
-        return `R$ ${(value / 1000).toFixed(0)}k`;
+    const sign = value < 0 ? '-' : '';
+    const absValue = Math.abs(value);
+    if (absValue >= 1000000) {
+        return `${sign}R$ ${(absValue / 1000000).toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })} mi`;
     }
-    return `R$ ${value.toFixed(0)}`;
+    if (absValue >= 1000) {
+        return `${sign}R$ ${(absValue / 1000).toFixed(0)}k`;
+    }
+    return `${sign}R$ ${absValue.toFixed(0)}`;
 }
 
 /**

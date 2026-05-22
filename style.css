@@ -62,6 +62,33 @@ body {
     display: flex;
 }
 
+body.editing-mode {
+    display: block;
+}
+
+body.editing-mode .admin-sidebar {
+    position: relative;
+    width: min(920px, calc(100vw - 32px));
+    height: auto;
+    min-height: calc(100vh - 32px);
+    margin: 16px auto;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+body.editing-mode .sidebar-content {
+    max-height: none;
+}
+
+body.editing-mode .client-proposal-container {
+    display: none;
+}
+
+body.editing-mode .admin-sidebar.collapsed {
+    transform: none;
+}
+
 /* ==========================================================================
    PAINEL ADMINISTRATIVO (SIDEBAR)
    ========================================================================== */
@@ -228,6 +255,11 @@ body {
     color: var(--color-text-muted);
     text-align: center;
     display: block;
+}
+
+.media-clear-btn {
+    width: 100%;
+    margin-top: 10px;
 }
 
 /* Saved projects list dropdown */
@@ -610,6 +642,145 @@ body {
     60% { transform: translateY(-2px); }
 }
 
+/* ==========================================================================
+   FATURA DO CLIENTE ABAIXO DO VIDEO
+   ========================================================================== */
+.bill-proof-section {
+    position: relative;
+    overflow: hidden;
+    margin-top: 0;
+    padding: 124px 0 92px;
+    background:
+        radial-gradient(circle at 72% 34%, rgba(251, 191, 36, 0.18), transparent 28%),
+        linear-gradient(180deg, #07090e 0%, #090f1a 34%, #0b111d 100%);
+}
+
+.hero-blur-transition {
+    position: absolute;
+    top: -92px;
+    left: 0;
+    right: 0;
+    height: 190px;
+    z-index: 1;
+    background:
+        radial-gradient(ellipse at 50% 30%, rgba(251, 191, 36, 0.16), transparent 34%),
+        linear-gradient(180deg, rgba(7, 9, 14, 0) 0%, rgba(7, 9, 14, 0.52) 38%, #07090e 78%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    pointer-events: none;
+    animation: billTransitionGlow 5s ease-in-out infinite alternate;
+}
+
+.bill-proof-inner {
+    position: relative;
+    z-index: 2;
+    width: min(1050px, calc(100% - 64px));
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(260px, 0.58fr) minmax(420px, 1.42fr);
+    gap: 34px;
+    align-items: start;
+}
+
+.bill-proof-copy h2 {
+    font-family: var(--font-heading);
+    font-size: clamp(1.4rem, 2.3vw, 2.35rem);
+    line-height: 1.12;
+    text-transform: uppercase;
+    color: #fff;
+    margin: 14px 0 14px;
+    letter-spacing: 0;
+}
+
+.bill-proof-copy p {
+    color: var(--color-text-secondary);
+    font-size: 0.96rem;
+    line-height: 1.6;
+    max-width: 390px;
+}
+
+.bill-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 22px;
+    align-items: start;
+}
+
+.bill-image-frame {
+    position: relative;
+    width: 100%;
+    min-height: 0;
+    height: fit-content;
+    margin: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid rgba(251, 191, 36, 0.56);
+    background: transparent;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 28px 70px rgba(0, 0, 0, 0.46),
+        0 0 34px rgba(251, 191, 36, 0.16);
+    line-height: 0;
+    transform: translateY(0);
+    animation: billCardReveal 700ms ease both;
+}
+
+.bill-image-frame img {
+    width: 100%;
+    height: auto;
+    max-height: 620px;
+    object-fit: contain;
+    background: #101827;
+    display: block;
+}
+
+@keyframes billTransitionGlow {
+    from {
+        opacity: 0.74;
+        transform: translateY(0);
+        filter: saturate(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(12px);
+        filter: saturate(1.18);
+    }
+}
+
+@keyframes billCardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.bill-placeholder {
+    min-height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    color: var(--color-text-secondary);
+    text-align: center;
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    text-transform: uppercase;
+    letter-spacing: 0;
+    border: 2px dashed rgba(251, 191, 36, 0.34);
+    border-radius: 8px;
+    background:
+        linear-gradient(135deg, rgba(251, 191, 36, 0.08), transparent 34%),
+        rgba(15, 23, 42, 0.7);
+}
+
+.bill-placeholder[hidden] {
+    display: none;
+}
+
 
 /* ==========================================================================
    SLIDE 2: COSTS & CONSUMPTION CARDS
@@ -732,20 +903,28 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
 }
 
-.canva-spec-list li span {
+.canva-spec-list li > span {
     color: var(--color-text-secondary);
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     text-transform: uppercase;
     font-weight: 700;
     letter-spacing: 0.5px;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
 }
 
 .canva-spec-list li strong {
     color: #fff;
-    font-size: 1.15rem;
+    font-size: clamp(1.55rem, 2.2vw, 2.25rem);
+    line-height: 1;
     font-family: var(--font-heading);
-    font-weight: 800;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.canva-spec-list li strong span {
+    font: inherit;
+    color: inherit;
+    letter-spacing: 0;
 }
 
 .canva-spec-list li strong.text-green {
@@ -754,8 +933,12 @@ body {
 
 .canva-spec-list li .spec-detail {
     color: var(--color-accent-sun);
-    font-weight: 700;
-    font-size: 0.95rem;
+    font-family: var(--font-heading);
+    font-weight: 900;
+    font-size: clamp(1.2rem, 1.7vw, 1.65rem);
+    line-height: 1.12;
+    letter-spacing: 0;
+    text-transform: uppercase;
 }
 
 /* Reusable Canva Reactive ROI CSS Bar Chart */
@@ -774,11 +957,12 @@ body {
 
 .canva-chart-container {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    height: 180px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    height: 210px;
     align-items: flex-end;
     margin-bottom: 30px;
+    padding-top: 34px;
 }
 
 .canva-chart-bar-item {
@@ -797,17 +981,18 @@ body {
     border-radius: 6px;
     display: flex;
     align-items: flex-end;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .canva-bar-fill {
+    position: relative;
     width: 100%;
     border-radius: 6px 6px 0 0;
     transition: height 1.5s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding-top: 8px;
+    padding-top: 0;
 }
 
 .canva-bar-fill.sun-bar {
@@ -820,11 +1005,36 @@ body {
     border-top: 2px solid #b3ffae;
 }
 
+.canva-bar-fill.red-bar {
+    background: linear-gradient(180deg, var(--color-accent-red) 0%, rgba(255, 51, 51, 0.28) 100%);
+    border-top: 2px solid #ffd0d0;
+}
+
 .bar-money {
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
     font-family: var(--font-heading);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 900;
-    color: #0b0f19;
+    color: #fff;
+    white-space: nowrap;
+    padding: 5px 7px;
+    border-radius: 6px;
+    background: rgba(3, 7, 18, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.red-bar .bar-money {
+    color: #ffd6d6;
+    border-color: rgba(255, 51, 51, 0.34);
+}
+
+.green-bar .bar-money {
+    color: #d7ffd4;
+    border-color: rgba(14, 171, 1, 0.34);
 }
 
 .bar-label {
@@ -1089,6 +1299,39 @@ body {
 @media screen and (max-width: 768px) {
     .slide-content-container {
         padding: 0 16px;
+    }
+
+    .bill-proof-section {
+        margin-top: 0;
+        padding: 92px 0 58px;
+    }
+
+    .bill-proof-inner {
+        width: min(100% - 28px, 560px);
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+
+    .bill-gallery {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .bill-proof-copy h2 {
+        font-size: 1.32rem;
+    }
+
+    .bill-proof-copy p {
+        font-size: 0.86rem;
+    }
+
+    .bill-image-frame {
+        min-height: 0;
+    }
+
+    .bill-image-frame img {
+        min-height: 0;
+        max-height: none;
     }
 
     #slide-hero.presentation-slide {
